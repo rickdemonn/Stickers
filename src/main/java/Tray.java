@@ -59,7 +59,7 @@ public class Tray {
         }
         log.info("Stickers Started");
         try {
-            StickersListener.runServer();
+            StickersHttpServer.runServer();
         } catch (IOException e) {
             e.printStackTrace();
         }
