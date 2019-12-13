@@ -12,16 +12,13 @@ import java.security.PrivilegedAction;
 public class WeightService {
 
 
-    public Object getWeight() {
-        @SuppressWarnings({ "unchecked", "rawtypes" })
-        BigDecimal res = (BigDecimal) AccessController.doPrivileged(new PrivilegedAction() {
-            public Object run() {
+    public String getWeight() {
+       // @SuppressWarnings({"rawtypes" })
+       //BigDecimal res = (BigDecimal) AccessController.doPrivileged(new PrivilegedAction() {
+       //     public Object run() {
                 Dispatch scale = null;
                 try {
-//                    System.setProperty(LibraryLoader.JACOB_DLL_PATH, "src/main/resources/jacob-1.14.3-x64.dll");
-                    File f = new File("src/main/resources/jacob-1.14.3-x64.dll");
-                    String absolute = f.getAbsolutePath();
-                    System.setProperty(LibraryLoader.JACOB_DLL_PATH, absolute);
+                    System.setProperty(LibraryLoader.JACOB_DLL_PATH, "C:\\lib\\jacob-1.14.3-x86.dll");
 
                     ActiveXComponent sca = new ActiveXComponent("Cas_AD_AP.Scale");
                     scale = sca.getObject();
@@ -55,12 +52,13 @@ public class WeightService {
                         default:
                             break;
                     }
-
-                    return new BigDecimal(new StringBuilder(weightStr.replace(',', '.')).reverse().toString()).setScale(3,
-                            BigDecimal.ROUND_HALF_UP);
+                    log.info("return " + weightStr);
+                    return weightStr;
+//                    return new BigDecimal(new StringBuilder(weightStr.replace(',', '.')).reverse().toString()).setScale(3,
+//                            BigDecimal.ROUND_HALF_UP);
                 } catch (Throwable e) {
                     e.printStackTrace();
-                    return new BigDecimal(0);
+                    return "0";
                 } finally {
                     if (scale != null) {
                         try {
@@ -70,9 +68,9 @@ public class WeightService {
                     }
                 }
             }
-        });
-
-        log.info("return " + res.toPlainString());
-        return res.toPlainString();
-    }
+//        });
+//
+//        log.info("return " + res.toPlainString());
+//        return res.toPlainString();
+//    }
 }
