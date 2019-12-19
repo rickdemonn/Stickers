@@ -30,32 +30,8 @@ public class WeightService {
                     String weightStr = Dispatch.get(scale, "Weight").toString();
                     log.info("weightStrAsIs: " + weightStr);
 
-                    BigDecimal bd = new BigDecimal(weightStr);
-                    weightStr = bd.toPlainString();
-                    log.info("weightStr as BigDecimal: " + weightStr);
-
-                    int delimiterPos = weightStr.indexOf(".", 0);
-                    switch (delimiterPos) {
-                        case 0:
-                            weightStr = "0";
-                        case 1:
-                            // Иногда вес приходит как "1,000061" , что означает
-                            // 0.16
-                            String p1 = weightStr.substring(6, 7);
-                            String p2 = weightStr.substring(0, 6);
-                            weightStr = p1 + p2;
-                            break;
-                        case 2:
-                            // А иногда как "61,00001" , что тоже означает 0.16
-                            weightStr = weightStr.substring(0, 7);
-                            break;
-                        default:
-                            break;
-                    }
                     log.info("return " + weightStr);
                     return weightStr;
-//                    return new BigDecimal(new StringBuilder(weightStr.replace(',', '.')).reverse().toString()).setScale(3,
-//                            BigDecimal.ROUND_HALF_UP);
                 } catch (Throwable e) {
                     e.printStackTrace();
                     return "0";
