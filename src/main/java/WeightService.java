@@ -20,17 +20,21 @@ public class WeightService {
                 try {
                     System.setProperty(LibraryLoader.JACOB_DLL_PATH, "C:\\lib\\jacob-1.14.3-x86.dll");
 
-                    ActiveXComponent sca = new ActiveXComponent("Cas_AD_AP.Scale");
+                    ActiveXComponent sca = new ActiveXComponent("CAScentre_DLL_printScale.Scale");
                     scale = sca.getObject();
                     log.info("Connecting...");
-                    Dispatch.call(scale, "Connect", "1", "0");
-
-                    log.info("Weighting...");
-                    Dispatch.call(scale, "UpdateOnlyWeight");
-                    String weightStr = Dispatch.get(scale, "Weight").toString();
+                    Dispatch.put(scale,"IP","COM1");
+                    Dispatch.put(scale,"Port",9600);
+                    Dispatch.put(scale,"Type",0);
+                    Dispatch.call(scale, "Open");
+                    String res = Dispatch.get(scale,"ResultCode").toString();
+                    log.info("Result: " + res);
+                    String weightStr = Dispatch.get(scale, "statusWeight").toString();
                     log.info("weightStrAsIs: " + weightStr);
+                    Dispatch.call(scale,"ReadCurrentStatus");
+                    String weigth = Dispatch.get(scale,"statusWeight").getString();
+                    log.info("weight: "+ weigth);
 
-                    log.info("return " + weightStr);
                     return weightStr;
                 } catch (Throwable e) {
                     e.printStackTrace();
@@ -38,7 +42,7 @@ public class WeightService {
                 } finally {
                     if (scale != null) {
                         try {
-                            Dispatch.call(scale, "Disconnect");
+                            Dispatch.call(scale, "Close");
                         } catch (Throwable e2) {
                         }
                     }
