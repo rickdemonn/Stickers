@@ -1,56 +1,62 @@
 import com.jacob.activeX.ActiveXComponent;
 import com.jacob.com.Dispatch;
 import com.jacob.com.LibraryLoader;
+import jssc.*;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.math.BigDecimal;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class WeightService {
 
+    private static SerialPort serialPort;
+    private static String data = null;
 
-    public String getWeight() {
-       // @SuppressWarnings({"rawtypes" })
-       //BigDecimal res = (BigDecimal) AccessController.doPrivileged(new PrivilegedAction() {
-       //     public Object run() {
-                Dispatch scale = null;
+
+    public void getWeight() throws InterruptedException, SerialPortTimeoutException, SerialPortException {
+        //Передаём в конструктор имя порта
+        serialPort = new SerialPort("COM3");
+        try {
+            //Открываем порт
+            serialPort.openPort();
+            //Выставляем параметры
+            serialPort.setParams(SerialPort.BAUDRATE_9600,
+                    SerialPort.DATABITS_8,
+                    SerialPort.STOPBITS_1,
+                    SerialPort.PARITY_NONE);
+            //Включаем аппаратное управление потоком
+            serialPort.setFlowControlMode(SerialPort.FLOWCONTROL_RTSCTS_IN |
+                    SerialPort.FLOWCONTROL_RTSCTS_OUT);
+            //Устанавливаем ивент лисенер и маску
+            serialPort.addEventListener(new PortReader(), SerialPort.MASK_RXCHAR);
+            //Отправляем запрос устройству
+            serialPort.writeString("W\n\r");
+            log.info("post to com W");
+        } catch (SerialPortException ex) {
+            System.out.println(ex);
+        }
+    }
+
+    private static class PortReader implements SerialPortEventListener {
+
+        public void serialEvent(SerialPortEvent event) {
+            if (event.isRXCHAR() && event.getEventValue() > 0) {
                 try {
-                    System.setProperty(LibraryLoader.JACOB_DLL_PATH, "C:\\lib\\jacob-1.14.3-x86.dll");
-
-                    ActiveXComponent sca = new ActiveXComponent("CAScentre_DLL_printScale.Scale");
-                    scale = sca.getObject();
-                    log.info("Connecting...");
-                    Dispatch.put(scale,"IP","COM1");
-                    Dispatch.put(scale,"Port",9600);
-                    Dispatch.put(scale,"Type",0);
-                    Dispatch.call(scale, "Open");
-                    String res = Dispatch.get(scale,"ResultCode").toString();
-                    log.info("Result: " + res);
-                    String weightStr = Dispatch.get(scale, "statusWeight").toString();
-                    log.info("weightStrAsIs: " + weightStr);
-                    Dispatch.call(scale,"ReadCurrentStatus");
-                    String weigth = Dispatch.get(scale,"statusWeight").getString();
-                    log.info("weight: "+ weigth);
-
-                    return weightStr;
-                } catch (Throwable e) {
-                    e.printStackTrace();
-                    return "0";
-                } finally {
-                    if (scale != null) {
-                        try {
-                            Dispatch.call(scale, "Close");
-                        } catch (Throwable e2) {
-                        }
-                    }
+                    //Получаем ответ от устройства, обрабатываем данные и т.д.
+                    log.info("ready to listen weights");
+                    String data = serialPort.readString(event.getEventValue());
+                    log.info("response: " + data);
+                    //И снова отправляем запрос
+                    serialPort.writeString("W\n\r");
+                } catch (SerialPortException ex) {
+                    System.out.println(ex);
                 }
             }
-//        });
-//
-//        log.info("return " + res.toPlainString());
-//        return res.toPlainString();
-//    }
+        }
+    }
 }
