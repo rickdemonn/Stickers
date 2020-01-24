@@ -17,21 +17,16 @@ public class WeightController implements HttpHandler {
     public void handle(HttpExchange httpExchange) throws IOException {
         String response = null;
         try {
-            try {
-//                response = weightService.getWeight();
-                 weightService.getWeight();
-            } catch (SerialPortException e) {
-                e.printStackTrace();
-            }
+            response = weightService.getWeight();
+
         } catch (InterruptedException e) {
             log.error("InterruptedException");
             e.printStackTrace();
-        } catch (SerialPortTimeoutException e) {
-            e.printStackTrace();
         }
-        httpExchange.sendResponseHeaders(200, response.length());
-        OutputStream os = httpExchange.getResponseBody();
-        os.write(response.getBytes());
-        os.close();
+            httpExchange.sendResponseHeaders(200, response.length());
+            OutputStream os = httpExchange.getResponseBody();
+            os.write(response.getBytes());
+            os.close();
+
     }
 }
